@@ -26,8 +26,8 @@ else:
     quit()
 
 # definição dos caminhos para leitura e criação dos arquivos excel
-leitura = r'empresas_esocial.xlsx'
-criacao = rf'esocial_{status_eventos}_{data_inicio}_a_{data_fim}.xlsx'
+leitura = 'empresas_esocial.xlsx'
+criacao = f'esocial_{status_eventos}_{data_inicio}_a_{data_fim}.xlsx'
 
 # leitura do arquivo excel com nome e cod das empresas
 empresas_df = pd.read_excel(leitura)
@@ -46,8 +46,8 @@ for codigo in empresas_df['cod']:
     navegador = webdriver.Chrome()
     navegador.get("https://ws1.soc.com.br/WebSoc/exportadados?parametro={"
                   + f"'empresa':'{empresa_mae}','codigo':'141273',"
-                    f"'chave':'{chave_ed}','tipoSaida':'txt','empresaTrabalho':{codigo}'"
-                    f"','dataInicio':'{data_inicio}','dataFim':'{data_fim}','status':'{status}',"
+                    f"'chave':'{chave_ed}','tipoSaida':'txt','empresaTrabalho':'{codigo}',"
+                    f"'dataInicio':'{data_inicio}','dataFim':'{data_fim}','status':'{status}',"
                     "'layout':'0','unidade':'0','ambiente':'1','cabecalho':'1'}")
     csv = WebDriverWait(navegador, 50).until(ec.element_to_be_clickable((By.XPATH, '/html/body/pre'))).text
 
@@ -103,4 +103,4 @@ ws.column_dimensions['G'].width = 20
 ws.column_dimensions['H'].width = 21
 
 # salvando a planilha alterada
-wb.save(rf'C:\Users\desenvolvimento02\Desktop\e-social {status_eventos} teste.xlsx')
+wb.save(criacao)
