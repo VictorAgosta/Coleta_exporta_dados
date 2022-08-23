@@ -5,10 +5,14 @@ from selenium.webdriver.support import expected_conditions as ec
 from openpyxl import load_workbook
 import pandas as pd
 
-# definição das variaveis da string do exporta dados
-status_eventos = 'inconsistencias'
-data_inicio = '01/01/2022'
-data_fim = '07/07/2022'
+################ definição das variaveis da string do exporta dados #####################
+status_eventos = 'inconsistencias'              # inconsistencias ou pendentes
+d_inicio = '01/01/2022'
+d_fim = '23/08/2022'
+#########################################################################################
+
+data_inicio = d_inicio.replace(r'/', '-')
+data_fim = d_fim.replace(r'/', '-')
 
 with open('empresa_mae.txt') as f_1:
     empresa_mae = f_1.read()
@@ -18,7 +22,7 @@ with open('chave.txt') as f_2:
 
 # condição para status de evento 0 -> pendente; 2 -> inconsistencia
 if status_eventos == 'inconsistencias':
-    status = 2
+    status = 1
 elif status_eventos == 'pendentes':
     status = 0
 else:
@@ -26,8 +30,8 @@ else:
     quit()
 
 # definição dos caminhos para leitura e criação dos arquivos excel
-leitura = 'empresas_esocial.xlsx'
-criacao = f'esocial_{status_eventos}_{data_inicio}_a_{data_fim}.xlsx'
+leitura = r'X:\e-Social\empresas_esocial.xlsx'
+criacao = rf'X:\e-Social\Inconsitencias_pendencias_eSocial\esocial_{status_eventos}_{data_inicio}_a_{data_fim}.xlsx'
 
 # leitura do arquivo excel com nome e cod das empresas
 empresas_df = pd.read_excel(leitura)
@@ -43,16 +47,24 @@ condicao = 'EVENTO;DATAGERACAO;UNIDADE;NOMEUNIDADE;CODIGOGED;CODIGOARQUIVOGED;' 
 # estrutura de repetição para os codigos das empresas do arquivo xlsx
 for codigo in empresas_df['cod']:
 
-    navegador = webdriver.Chrome()
-    navegador.get("https://ws1.soc.com.br/WebSoc/exportadados?parametro={"
-                  + f"'empresa':'{empresa_mae}','codigo':'141273',"
-                    f"'chave':'{chave_ed}','tipoSaida':'txt','empresaTrabalho':'{codigo}',"
-                    f"'dataInicio':'{data_inicio}','dataFim':'{data_fim}','status':'{status}',"
-                    "'layout':'0','unidade':'0','ambiente':'1','cabecalho':'1'}")
-    csv = WebDriverWait(navegador, 50).until(ec.element_to_be_clickable((By.XPATH, '/html/body/pre'))).text
+    options = webdriver.ChromeOptions()
+    options.add_argument("--incognito")
+
+    navegador = webdriver.Chrome(options=options)
+
+    url = ("https://ws1.soc.com.br/WebSoc/exportadados?parametro={"
+          + f"'empresa':'{empresa_mae}','codigo':'141273',"
+            f"'chave':'{chave_ed}','tipoSaida':'txt','empresaTrabalho':'{codigo}',"
+            f"'dataInicio':'{d_inicio}','dataFim':'{d_fim}','status':'{status}',"
+            "'layout':'0','unidade':'0','ambiente':'1','cabecalho':'1'}")
+    navegador.get(url)
+    csv = WebDriverWait(navegador, 250).until(ec.element_to_be_clickable((By.XPATH, '/html/body/pre'))).text
+    if csv == condicao:
+        continue
 
 # tratativa do texto copiado do exporta dados gerando um xlsx para todas empresas
     plan = csv.split("\n")
+
     for linha in plan:
         if linha == condicao:
             continue
